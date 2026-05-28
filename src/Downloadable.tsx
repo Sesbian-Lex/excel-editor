@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import ExcelJS from "exceljs";
 import './App.css'
+import { writeFile } from "@tauri-apps/plugin-fs";
+import { save } from "@tauri-apps/plugin-dialog";
 
 interface downloadableProps {
     userData : leaveObject[], 
@@ -50,33 +52,47 @@ function Downloadable({userData, leaveType} : downloadableProps){
     
         // console.log(actualArray)
     
-        const buffer = await workbook.xlsx.writeBuffer();   
-    
-        const blob = new Blob([buffer], {
-          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        });
-    
-        const url = URL.createObjectURL(blob);
+        async function downloadExcel(workbook: ExcelJS.Workbook) {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const uint8Array = new Uint8Array(buffer as ArrayBuffer);
 
-        const a = document.createElement("a");  
-        a.href = url;
-        a.download = `${actualArray[0].__EMPTY_1}.xlsx`;
-        a.click()
+        // Detect Tauri environment
+        const isTauri = "__TAURI_INTERNALS__" in window;
 
-        URL.revokeObjectURL(url); 
-        // setDownloadLink(url)
+        if (isTauri) {
+            // Opens native OS "Save As" dialog — user picks location + filename
+            const filePath = await save({
+                defaultPath: "Compiled Leave.xlsx",
+                filters: [
+                    {
+                    name: "Excel Spreadsheet",
+                    extensions: ["xlsx"],
+                    },
+                ],
+                });
+
+            if (!filePath) return; // User cancelled — no ghost downloads
+
+            await writeFile(filePath, uint8Array);
+        } else {
+            // Original browser flow unchanged
+            const blob = new Blob([buffer], {
+            type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "compiled.xlsx";
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        downloadExcel(workbook)
+
       }, [leaveType, userData])
 
-    
-    // const handleDownload = useCallback( async()=>{
-    //     console.log("clicked")   
-    //     console.log(downloadLink)
-    //     const actualArray =  userData;
-    //     const a = document.createElement("a");
-    //     a.href = downloadLink;
-    //     a.download = `${actualArray[0].__EMPTY_1}.xlsx`;
-    //     a.click()
-    // },[downloadLink, userData])
+
 
 
     return(

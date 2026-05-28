@@ -3,6 +3,9 @@ import * as XLSX from "xlsx"
 import './App.css'
 import Downloadable from "./Downloadable";
 import FileUpload from "./FileUpload";
+import { readFile } from '@tauri-apps/plugin-fs';
+import CompiledDownloadable from "./CompiledDownloadable";
+ 
 
 
 // type leaveObject = Record<string, unknown>;
@@ -14,7 +17,7 @@ function App() {
   //the inner arrays contain's  the person's leave schedules
   const [sickLeaveData, setSickLeaveData] = useState<leaveObject[][] | null>(null)
   const [vacationLeaveData, setVacationLeaveData] = useState<leaveObject[][] | null>(null)
-
+  const [file, setFile] = useState<File | null>(null)
   //triggers as the sickLeaveData and vacationData changes
   //will be used to display downloadables
   useEffect(()=>{
@@ -22,55 +25,35 @@ function App() {
     console.log(vacationLeaveData)
   },[sickLeaveData, vacationLeaveData])
 
-  //triggers when the input change when it recieves a file
-  // const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  async function processFile(input: File | string) {
+  if (typeof input === "string") {
+    // TAURI PATH → convert to File
+    const fileUint8Array = await readFile(input); 
     
-  //   //puts said file into constant named files
-  //   const file = e.target.files?.[0];
+    // 2. Extract the file name from the path (e.g., "JANUARY.xls")
+    const fileName = input.split('/').pop() || 'uploaded_file.xls';
 
-  //   //checks constant file is empty as the
-  //   // function may run on load resulting in error
-  //   if (!file) return;
+    // 3. Convert the Uint8Array into a standard browser File object
+    // Note: 'application/vnd.ms-excel' is the standard MIME type for .xls
+    const fileObject = new File([fileUint8Array], fileName, {
+      type: 'application/vnd.ms-excel', 
+    });
 
-  //   //reader from sheetJS
-  //   const reader = new FileReader();
-
-  //   reader.onload = (event) => {
-  //     const result = event.target?.result;
-
-  //     //if somehow the result is empty
-  //     if (!result) return;
-
-  //     //declares how sheetJS should read the file
-  //     //celldates true since it contains preformatted cells
-  //     const workbook = XLSX.read(result, { type: "binary", cellDates : true, cellStyles : true});
-
-  //     const sheetName = workbook.SheetNames[0];
-  //     const worksheet = workbook.Sheets[sheetName];
-
-  //     //converts the sheet to a JSON object
-  //     const jsonData: ExcelRow[] = XLSX.utils.sheet_to_json(worksheet);
-
-  //     //removes the bloat and only shows data
-  //     const extractedData = extractData(jsonData)
-
-  //     const tempSickLeaveData = processSickLeaveData(extractedData)
-  //     const tempVacationLeaveData = processVacationLeaveData(extractedData)
-
-  //     setSickLeaveData(tempSickLeaveData)
-  //     setVacationLeaveData(tempVacationLeaveData)
-
-  //     // createLeaveSheet(sickLeaveData[1], "Sick Leave")
-  //   };
-  
-  //   reader.readAsBinaryString(file);
-
-  // };
+    console.log(fileObject)
+    handleFile(fileObject); // your existing logic
+  } else {
+    // BROWSER FILE
+    handleFile(input);
+  }
+}
 
   const handleFile = (file: File)=>{
     //checks constant file is empty as the
     // function may run on load resulting in error
     if (!file) return;
+
+    setFile(file)
 
     //reader from sheetJS
     const reader = new FileReader();
@@ -168,6 +151,11 @@ function App() {
       return groupedVacationLeaveDataArray
   }
 
+  const removeFile = () => {
+    setFile(null)
+    setSickLeaveData(null)
+    setVacationLeaveData(null)
+  }
 
 
   return (
@@ -178,7 +166,29 @@ function App() {
           <h1>Excel Editor</h1>
           
           <div className="box-holder">
-            <FileUpload handleFile={handleFile}/>
+            {file ? <div className="input-box">
+              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                📄 {file.name} ({(file.size / 1024).toFixed(1)} KB)
+              </span>
+              <button 
+                onClick={removeFile} 
+                style={{ 
+                  marginLeft: '10px', 
+                  background: 'red', 
+                  color: 'white', 
+                  border: 'none', 
+                  borderRadius: '50%', 
+                  width: '24px', 
+                  height: '24px', 
+                  cursor: 'pointer' 
+                }}
+              >
+                X
+              </button>
+            </div>
+            
+            : <FileUpload processFile={processFile}/>}
+            
             {/* <div className="input-box">
               <input
                 type="file"
@@ -187,6 +197,10 @@ function App() {
               />              
             </div> */}
             <div className="output-box"> 
+              {!sickLeaveData ? "" : 
+                !vacationLeaveData ? "" :
+                  <CompiledDownloadable sickLeaveData={sickLeaveData} vacationLeaveData={vacationLeaveData}/>
+              }
               {sickLeaveData?.map((item, index)=><Downloadable userData={item} key={index} leaveType={"Sick Leave"}/>)}
               {vacationLeaveData?.map((item, index)=><Downloadable userData={item} key={index} leaveType={"Vacation Leave"}/>)}
               {sickLeaveData?.map((item, index)=><Downloadable userData={item} key={index} leaveType={"Sick Leave"}/>)}

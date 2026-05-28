@@ -6,6 +6,12 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    "fs:allow-read-text-file",
+    "fs:allow-read-file",
+    "fs:default",
+    "dialog:allow-save",
+    "fs:allow-write-file",
+    "fs:allow-write"
   ]
 }
