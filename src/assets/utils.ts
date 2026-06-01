@@ -37,19 +37,25 @@ interface fileStateProps {
       const worksheet = workbook.Sheets[sheetName];
 
       //converts the sheet to a JSON object
-      const jsonData: leaveObject[] = XLSX.utils.sheet_to_json(worksheet);
+      const jsonData: leaveObject[] = XLSX.utils.sheet_to_json(worksheet, {
+          range: 0, // row 0 is empty → generates __EMPTY_N keys
+          defval: undefined, // omit empty cells (keeps sparse object format)
+      });
+
+        console.log(jsonData)
 
       //removes the bloat and only shows data
       const extractedData = extractData(jsonData)
 
-      // console.log(extractedData)
+    //   console.log(extractedData)
 
       // processSickLeaveData(extractedData)
-      const tempSickLeaveData = processSickLeaveData(extractedData)
-      const tempVacationLeaveData = processVacationLeaveData(extractedData)
+
+      const tempSickLeaveData = extractedData[0].length > 0 ?  processSickLeaveData(extractedData) : []
+      const tempVacationLeaveData = extractedData[1].length > 0 ? processVacationLeaveData(extractedData) : []
 
       // console.log(tempSickLeaveData)
-      // console.log(tempVacationLeaveData)
+    //   console.log(tempVacationLeaveData)
 
       sickLeave.setValue(tempSickLeaveData)
       vacationLeave.setValue(tempVacationLeaveData)
@@ -63,25 +69,29 @@ interface fileStateProps {
   //extracts only the leave rows
   //separates sick and vacation leave 0, 1 respectively
   const extractData = (jsonData : leaveObject[]) => {
-    // console.log(jsonData[7].__EMPTY)
-    let currentGroup : leaveObject[] = []
+    // console.log(jsonData)
+    // let currentGroup : leaveObject[] = []
     const leaveGroupings : leaveObject[][] = []
+    leaveGroupings[0] = []
+    leaveGroupings[1] = []
 
+    let a = 0;
+    
     jsonData.forEach( num => {
-      if(isNaN(Number(num.__EMPTY))){
-        if(currentGroup.length !== 0){
-          leaveGroupings.push(currentGroup)
-          currentGroup = []
-        }
+        if(!num.__EMPTY) return
+      
 
-        return
+      if(num.__EMPTY.includes("SICK")) a = 0;
+      if(num.__EMPTY.includes("VACATION")) a = 1;
+        
+      if(num.__EMPTY !== null && Number(num.__EMPTY)){
+        // console.log(num)
+        leaveGroupings[a].push(num)
       }
-
-      // console.log(num)
-      currentGroup.push(num)
 
     })
 
+    // console.log(leaveGroupings)
     return leaveGroupings
   }
 
@@ -90,27 +100,33 @@ interface fileStateProps {
   //each element on the first array is the employee
   //each employee has their own array of leaves
   const processSickLeaveData = (extractedData : leaveObject[][]) => {
+
       //takes sickleave data only 
       const groupedSickLeaveData = Object.groupBy(extractedData[0], item => item.__EMPTY)
-      // console.log(groupedSickLeaveData)
+    //   console.log(groupedSickLeaveData)
 
       // //sorts the sick leave data array by their dates
       const groupedSickLeaveDataArray = Object.values(groupedSickLeaveData).filter((element): element is leaveObject[] => element !== undefined);
       groupedSickLeaveDataArray.forEach(element => {
         if(!element) return
-        element.sort((a : leaveObject, b : leaveObject) => a.__EMPTY_2.getTime() - b.__EMPTY_2.getTime())
+        element.sort((a : leaveObject, b : leaveObject) => Number(a.__EMPTY_2)- Number(b.__EMPTY_2))
       });
       return groupedSickLeaveDataArray
   }
   const processVacationLeaveData = (extractedData : leaveObject[][]) => {
+    // console.log("triggered")
+
   //     //takes vacation leave data only
       const groupedVacationLeaveData = Object.groupBy(extractedData[1], item => item.__EMPTY)
+      
 
   //     //sorts the sick leave data array by their dates
       const groupedVacationLeaveDataArray = Object.values(groupedVacationLeaveData).filter((element): element is leaveObject[] => element !== undefined);
+    //   console.log(groupedVacationLeaveData)
+
       groupedVacationLeaveDataArray.forEach(element => {
         if(!element) return
-            element.sort((a : leaveObject, b : leaveObject) => a.__EMPTY_2.getTime() - b.__EMPTY_2.getTime())
+            element.sort((a : leaveObject, b : leaveObject) => Number(a.__EMPTY_2)- Number(b.__EMPTY_2))
       });
 
       return groupedVacationLeaveDataArray

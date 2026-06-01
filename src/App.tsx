@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 // import * as XLSX from "xlsx"
 import './App.css'
 import Downloadable from "./Downloadable";
@@ -23,10 +23,10 @@ function App() {
 
   //triggers as the sickLeaveData and vacationData changes
   //will be used to display downloadables
-  useEffect(()=>{
-    console.log(sickLeaveData)
-    console.log(vacationLeaveData)
-  },[sickLeaveData, vacationLeaveData])
+  // useEffect(()=>{
+  //   console.log(sickLeaveData)
+  //   console.log(vacationLeaveData)
+  // },[sickLeaveData, vacationLeaveData])
 
 
   async function processFile(input: File | string) {
