@@ -193,7 +193,6 @@ function CompiledDownloadable({sickLeaveData, vacationLeaveData} : CompiledDownl
                 await createLeaveSheet()
             }}
             className="download-card"
-            style={{ backgroundColor : "gray"}}
             >
             <h4>
                 COMPILED LEAVE SHEETS                

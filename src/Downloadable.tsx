@@ -62,7 +62,7 @@ function Downloadable({userData, leaveType} : downloadableProps){
         if (isTauri) {
             // Opens native OS "Save As" dialog — user picks location + filename
             const filePath = await save({
-                defaultPath: "Compiled Leave.xlsx",
+                defaultPath: `${name}.xlsx`,
                 filters: [
                     {
                     name: "Excel Spreadsheet",
@@ -82,7 +82,7 @@ function Downloadable({userData, leaveType} : downloadableProps){
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "compiled.xlsx";
+                a.download = `${name}.xlsx`;
                 a.click();
                 URL.revokeObjectURL(url);
             }
@@ -90,7 +90,7 @@ function Downloadable({userData, leaveType} : downloadableProps){
 
         downloadExcel(workbook)
 
-      }, [leaveType, userData])
+      }, [leaveType, userData, name])
 
 
 
