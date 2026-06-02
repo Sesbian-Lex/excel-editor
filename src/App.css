@@ -42,7 +42,10 @@
   /* aspect-ratio: 1; */
   padding: 8px;
   background-color: azure;
-
+  aspect-ratio: 1;
+  overflow-y: scroll;
+  border: 2px;
+  border-radius: 12px;
   /* justify-content: center;
   align-content: center;
   align-items: center; */
@@ -55,8 +58,7 @@
   /* grid-auto-rows: minmax(0, 25%);    */
   grid-auto-rows: auto;
   gap : 8px;
-  border: 2px;
-  border-radius: 12px;
+
 }
 
 .grid-title {
@@ -116,6 +118,8 @@
   /* width : 100%; */
 }
 
+
+
 .download-card:hover{
   transform: scale(1.1);
 }
@@ -141,4 +145,23 @@
   width: 24px;
   height: 24px; 
  cursor: pointer; 
+}
+
+@media (min-width: 1024px) {
+  .download-card h4{
+    font-size: medium;
+  }
+}
+
+@media (min-width: 768px) {
+  .download-card h4{
+    font-size: small;
+  }
+}
+
+
+@media (min-width: 640px) {
+  .download-card h4{
+    font-size: smaller;
+  }
 }
