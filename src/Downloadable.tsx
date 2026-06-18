@@ -22,8 +22,9 @@ function Downloadable({userData, leaveType} : downloadableProps){
     const createLeaveSheet = useCallback(async()=>{
         const actualArray = userData;
 
-        console.log("triggered")
+        // console.log("triggered")
 
+        //takes template
         const response = await fetch("/templates/LEAVE-TEMPLATE.xlsx");
     
         const arrayBuffer = await response.arrayBuffer();
