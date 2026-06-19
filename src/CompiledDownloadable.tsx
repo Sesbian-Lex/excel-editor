@@ -149,7 +149,6 @@ function CompiledDownloadable({sickLeaveData, vacationLeaveData} : CompiledDownl
 
 
 
-        // console.log(actualArray)
     
         async function downloadExcel(workbook: ExcelJS.Workbook) {
             const buffer = await workbook.xlsx.writeBuffer();
@@ -158,13 +157,14 @@ function CompiledDownloadable({sickLeaveData, vacationLeaveData} : CompiledDownl
             // Detect Tauri environment
             const isTauri = "__TAURI_INTERNALS__" in window;
 
-            let month : Date;
+            let month : Date | null    
 
             if (leaveType == 0){
-                month = new Date(sickLeaveData[0][0].__EMPTY_2);
+                month = (new Date(sickLeaveData[0][0].__EMPTY_2))
+                // console.log("month set to: ", new Date(sickLeaveData[0][0].__EMPTY_2))
             } else if (leaveType == 1){
-                month = new Date(vacationLeaveData[0][0].__EMPTY_2);
-            }
+                month = (new Date(vacationLeaveData[0][0].__EMPTY_2))
+            } else month = null
 
             if(!month) return
 
@@ -205,14 +205,15 @@ function CompiledDownloadable({sickLeaveData, vacationLeaveData} : CompiledDownl
 
     return(
         <>        
-            {sickLeaveData.length !== 0 ?             <div 
+            {sickLeaveData.length !== 0 ?            
+            <div 
                 onClick={async () => {
                     await createLeaveSheet(0)
                 }}
                 className="download-card"
                 >
-                <h4>
-                    Compiled Sick Leave     
+                <h4>    
+                    {sickLeaveData[0][0].__EMPTY_2.toLocaleDateString('en-US', { month: 'long' })} Sick Leave     
                 </h4>
 
                 
@@ -227,10 +228,10 @@ function CompiledDownloadable({sickLeaveData, vacationLeaveData} : CompiledDownl
                 className="download-card"
                 >
                 <h4>
-                    Compiled Vacation Leave               
+                    {vacationLeaveData[0][0].__EMPTY_2.toLocaleDateString('en-US', { month: 'long' })} Vacation Leave               
                 </h4>
 
-                
+                 
                 {/* {`${userData[0].__EMPTY_1}.xlsx`} */}
             </div> : ""}
 

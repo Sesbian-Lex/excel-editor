@@ -42,7 +42,7 @@ interface fileStateProps {
           defval: undefined, // omit empty cells (keeps sparse object format)
       });
 
-        console.log(jsonData)
+        // console.log(jsonData)
 
       //removes the bloat and only shows data
       const extractedData = extractData(jsonData)
